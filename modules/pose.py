@@ -33,9 +33,9 @@ class Pose:
         for kpt_id in range(Pose.num_kpts):
             if keypoints[kpt_id, 0] == -1:
                 continue
-            found_keypoints[found_kpt_id] = keypoints[kpt_id]
-            found_kpt_id += 1
-            print("Part:",Pose.kpt_names[kpt_id])
+            elif kpt_id == 0 or kpt_id == 1 or kpt_id == 2 or kpt_id == 5 or kpt_id == 14 or kpt_id == 15 or kpt_id == 16 or kpt_id == 17:
+                found_keypoints[found_kpt_id] = keypoints[kpt_id]
+                found_kpt_id += 1
         bbox = cv2.boundingRect(found_keypoints)
         return bbox
 
