@@ -22,7 +22,7 @@ def run_3dpose(net):
     transmit_over_socket = False
 
     # NOTE: prerecorded videos not included
-    useprerecorded = True
+    useprerecorded = False
     waitforready = True
 
     net = net.eval()
