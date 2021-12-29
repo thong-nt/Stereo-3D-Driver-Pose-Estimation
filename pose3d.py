@@ -56,8 +56,8 @@ def run_3dpose(net):
 
     if not useprerecorded:
         # NOTE: Set the camera ids to match your setup
-        Lcam = cv2.VideoCapture(2)
-        Rcam = cv2.VideoCapture(4)
+        Lcam = cv2.VideoCapture(0)
+        Rcam = cv2.VideoCapture(1)
     else:
         camera_dist = 0.15
         # NOTE: these videos are not included
