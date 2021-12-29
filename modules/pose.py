@@ -35,6 +35,7 @@ class Pose:
                 continue
             found_keypoints[found_kpt_id] = keypoints[kpt_id]
             found_kpt_id += 1
+            print("Part:",Pose.kpt_names[kpt_id])
         bbox = cv2.boundingRect(found_keypoints)
         return bbox
 
