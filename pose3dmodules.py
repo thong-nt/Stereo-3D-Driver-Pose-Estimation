@@ -12,17 +12,24 @@ from modules.pose import Pose, track_poses
 from val import normalize, pad_width
 
 # nose, neck, r_sho, r_elb, r_wri, l_sho, l_elb, l_wri, r_hip, l_hip, r_eye, l_eye, r_ear, l_ear]
-upperbody_keypoints = [0, 1, 2, 3, 4, 5, 6, 7]
+# nose, neck, r_sho, r_elb, r_wri, l_sho, l_elb, l_wri, r_hip, l_hip, r_eye, l_eye, r_ear, l_ear]
+upperbody_keypoints = [0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 14, 15, 16, 17]
 
 upperbody_keypoints_d = {
     "nose" : 0,
     "neck" : 1,
     "r_sho" : 2,
-    "l_sho" : 3,
-    "r_eye" : 4,
-    "l_eye" : 5,
-    "r_ear" : 6,
-    "l_ear" : 7 }
+    "r_elb" : 3,
+    "r_wri" : 4,
+    "l_sho" : 5,
+    "l_elb" : 6,
+    "l_wri" : 7,
+    "r_hip" : 8,
+    "l_hip" : 11,
+    "r_eye" : 14,
+    "l_eye" : 15,
+    "r_ear" : 16,
+    "l_ear" : 17 }
 
 def infer_fast(net, img, net_input_height_size, stride, upsample_ratio, cpu,
                pad_value=(0, 0, 0), img_mean=(128, 128, 128), img_scale=1/256):
