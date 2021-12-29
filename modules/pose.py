@@ -36,8 +36,6 @@ class Pose:
             found_keypoints[found_kpt_id] = keypoints[kpt_id]
             found_kpt_id += 1
         bbox = cv2.boundingRect(found_keypoints)
-
-        print("Length of bbox", len(bbox))
         return bbox
 
     def update_id(self, id=None):
