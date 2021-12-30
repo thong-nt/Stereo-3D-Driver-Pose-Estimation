@@ -9,7 +9,6 @@ from modules.pose import Pose, track_poses
 from val import normalize, pad_width
 
 from pose3dmodules import *
-from posesocket import PoseTransmitter
 from posescheduler import PoseScheduler
 from poseinferscheduler import PoseInferScheduler
 
@@ -19,7 +18,6 @@ import time
 def run_3dpose(net):
     cpu = False
     downscale_resolution = True
-    transmit_over_socket = False
 
     # NOTE: prerecorded videos not included
     useprerecorded = False
