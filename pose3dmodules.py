@@ -12,7 +12,6 @@ from modules.pose import Pose, track_poses
 from val import normalize, pad_width
 
 # nose, neck, r_sho, r_elb, r_wri, l_sho, l_elb, l_wri, r_hip, l_hip, r_eye, l_eye, r_ear, l_ear]
-# nose, neck, r_sho, r_elb, r_wri, l_sho, l_elb, l_wri, r_hip, l_hip, r_eye, l_eye, r_ear, l_ear]
 upperbody_keypoints = [0, 1, 2, 3, 4, 5, 6, 7, 8, 11, 14, 15, 16, 17]
 
 upperbody_keypoints_d = {
