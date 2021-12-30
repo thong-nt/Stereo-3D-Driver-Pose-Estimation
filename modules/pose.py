@@ -6,7 +6,7 @@ from modules.one_euro_filter import OneEuroFilter
 
 
 class Pose:
-    num_kpts = 14
+    num_kpts = 18
     kpt_names = ['nose', 'neck',
                  'r_sho', 'r_elb', 'r_wri', 'l_sho', 'l_elb', 'l_wri',
                  'r_hip', 'r_knee', 'r_ank', 'l_hip', 'l_knee', 'l_ank',
