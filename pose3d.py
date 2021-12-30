@@ -80,10 +80,6 @@ def run_3dpose(net):
     Limg = None
     newpose, r_current_poses, l_current_poses, Rimg_synced, Limg_synced = False, None, None, None, None
 
-    if transmit_over_socket:
-        posetransmitter = PoseTransmitter(host="127.0.0.1", port=1234)
-        posetransmitter.await_connection()
-
     canadvance = True
     newframetime = time.time()
 
@@ -163,9 +159,6 @@ def run_3dpose(net):
             except:
                 continue
 
-            if transmit_over_socket:
-                posetransmitter.transmit_pose(pose3d)
-
 
         if len(r_previous_poses) == 0 or len(l_previous_poses) == 0:
             continue
@@ -179,7 +172,7 @@ def run_3dpose(net):
             pose_infer_scheduler.stop_infer()
             return
 
-        # print("fps:", int(1 / (time.time() - begintime)))
+        print("fps:", int(1 / (time.time() - begintime)))
 
 
 
