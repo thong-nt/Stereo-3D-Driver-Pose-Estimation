@@ -12,13 +12,8 @@ from pose3dmodules import *
 
 def run_3dpose(net):
     cpu = False
-    downscale_resolution = True
-
-    img_synced = None
 
     img = cv2.imread('img_34.jpg')
-    if downscale_resolution:
-        img = cv2.resize(img, (360, 270))
 
     orig_img = img
     Pose.draw(img)
