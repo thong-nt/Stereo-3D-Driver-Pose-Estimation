@@ -13,13 +13,15 @@ from pose3dmodules import *
 def run_3dpose(net):
     cpu = False
 
-    img = cv2.imread('img_34.jpg')
+    net = net.eval()
+    net = net.cuda()
 
-    orig_img = img
-    Pose.draw(img)
-    img = cv2.addWeighted(orig_img, 0.6, img, 0.4, 0)
-    cv2.imshow('image',img)
-    key = cv2.waitKey(1)
+    stride = 8
+    upsample_ratio = 4
+    num_keypoints = Pose.num_kpts
+
+    img = cv2.imread("img_34.jpg", cv2.IMREAD_COLOR)
+
 
 if __name__ == '__main__':
     net = PoseEstimationWithMobileNet()
