@@ -36,7 +36,6 @@ def run_3dpose(net):
     newpose, r_current_poses, l_current_poses, Rimg_synced, Limg_synced = False, None, None, None, None
    
     while True:
-        pose_infer_scheduler.set_images(Rimg, Limg)
 
         Lnewpose, r_pose_data, Rimg_sync = pose_infer_scheduler.get_left_pose()
         Rnewpose, l_pose_data, Limg_sync = pose_infer_scheduler.get_right_pose()
