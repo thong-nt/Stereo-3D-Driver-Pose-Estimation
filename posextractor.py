@@ -17,8 +17,10 @@ class PoseExtractor (threading.Thread):
     def __init__(self, previous_pose, current_pose_target, heatmaps, pafs, scale, pad, num_keypoints, stride, upsample_ratio):
         threading.Thread.__init__(self)
 
-        self.BODY_PARTS_KPT_IDS = [[1, 2], [1, 5], [1, 0], [0, 14], [14, 16], [0, 15], [15, 17], [2, 16], [5, 17]]
-        self.BODY_PARTS_PAF_IDS = ([12, 13], [20, 21], [28, 29], [30, 31], [34, 35], [32, 33], [36, 37], [18, 19], [26, 27])
+        self.BODY_PARTS_KPT_IDS = [[1, 2], [1, 5], [2, 3], [3, 4], [5, 6], [6, 7], [1, 8], [8, 9], [9, 10], [1, 11],
+                      [11, 12], [12, 13], [1, 0], [0, 14], [14, 16], [0, 15], [15, 17], [2, 16], [5, 17]]
+        self.BODY_PARTS_PAF_IDS = ([12, 13], [20, 21], [14, 15], [16, 17], [22, 23], [24, 25], [0, 1], [2, 3], [4, 5],
+                      [6, 7], [8, 9], [10, 11], [28, 29], [30, 31], [34, 35], [32, 33], [36, 37], [18, 19], [26, 27])
 
         self.previous_pose = previous_pose
         self.heatmaps = heatmaps
