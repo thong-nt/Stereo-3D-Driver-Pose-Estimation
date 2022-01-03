@@ -170,7 +170,7 @@ def run_3dpose(net):
             pose_infer_scheduler.stop_infer()
             return
 
-        print("fps:", int(1 / (time.time() - begintime)))
+        #print("fps:", int(1 / (time.time() - begintime)))
 
 
 
