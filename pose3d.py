@@ -20,7 +20,7 @@ def run_3dpose(net):
     downscale_resolution = True
 
     # NOTE: prerecorded videos not included
-    useprerecorded = True
+    useprerecorded = False
     waitforready = True
 
     net = net.eval()
@@ -61,8 +61,8 @@ def run_3dpose(net):
         # NOTE: these videos are not included
         # Lcam = cv2.VideoCapture("testvideo/L_video_50cm.avi")
         # Rcam = cv2.VideoCapture("testvideo/R_video_50cm.avi")
-        Lcam = cv2.imread("img_34.jpg")
-        Rcam = cv2.imread("img_34.jpg")
+        Lcam = cv2.VideoCapture("testvideo/L_video_multi_15cm.avi")
+        Rcam = cv2.VideoCapture("testvideo/R_video_multi_15cm.avi")
 
         # due to unfortunate offset in the frames
         for i in range(4):
