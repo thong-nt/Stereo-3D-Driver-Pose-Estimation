@@ -9,6 +9,8 @@ from modules.pose import Pose, track_poses
 from val import normalize, pad_width
 
 from pose3dmodules import *
+from posescheduler import PoseScheduler
+from poseinferscheduler import PoseInferScheduler
 
 def run_3dpose(net):
     cpu = False
