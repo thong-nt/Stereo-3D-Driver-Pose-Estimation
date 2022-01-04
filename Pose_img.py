@@ -67,7 +67,6 @@ def run_demo(net, image_provider, height_size, cpu, track, smooth):
     previous_poses = []
     delay = 1
 
-    #while True:
     for img in image_provider:
         img = cv2.resize(img, (360, 270))
         orig_img = img.copy()
@@ -100,17 +99,19 @@ def run_demo(net, image_provider, height_size, cpu, track, smooth):
         for pose in current_poses:
             pose.draw(img)
         img = cv2.addWeighted(orig_img, 0.6, img, 0.4, 0)
+
         #for pose in current_poses:
         #    cv2.rectangle(img, (pose.bbox[0], pose.bbox[1]),
         #                  (pose.bbox[0] + pose.bbox[2], pose.bbox[1] + pose.bbox[3]), (0, 255, 0))
         #    if track:
         #        cv2.putText(img, 'id: {}'.format(pose.id), (pose.bbox[0], pose.bbox[1] - 16),
         #                   cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255))
-        cv2.imshow('Lightweight Human Pose Estimation Python Demo', img)
+        #cv2.imshow('Lightweight Human Pose Estimation Python Demo', img)
 
-        key = cv2.waitKey(1)
-        if key == ord('q'):
-            return
+        while True:
+            key = cv2.waitKey(0)
+            if key == ord('q'):
+                return
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
