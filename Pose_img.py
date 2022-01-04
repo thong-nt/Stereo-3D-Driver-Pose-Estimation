@@ -69,7 +69,7 @@ def run_demo(net, image_provider, height_size, cpu, track, smooth):
 
     while True:
         for img in image_provider:
-            #img = cv2.resize(img, (360, 270))
+            img = cv2.resize(img, (64, 64))
             orig_img = img.copy()
             heatmaps, pafs, scale, pad = infer_fast(net, img, height_size, stride, upsample_ratio, cpu)
 
@@ -111,12 +111,6 @@ def run_demo(net, image_provider, height_size, cpu, track, smooth):
             key = cv2.waitKey(1)
             if key == ord('q'):
                 return
-            elif key == 112:  # 'p'
-                if delay == 1:
-                    delay = 0
-                else:
-                    delay = 1
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(

@@ -47,24 +47,21 @@ class Pose:
     def draw(self, img):
         assert self.keypoints.shape == (Pose.num_kpts, 2)
 
-        stt = 0
-
         for part_id in range(len(BODY_PARTS_PAF_IDS) - 2):
             kpt_a_id = BODY_PARTS_KPT_IDS[part_id][0]
             global_kpt_a_id = self.keypoints[kpt_a_id, 0]
             if global_kpt_a_id != -1:
                 x_a, y_a = self.keypoints[kpt_a_id]
                 cv2.circle(img, (int(x_a), int(y_a)), 3, Pose.color, -1)
-                #print("Stt %d - Point a:(%d,%d)",stt,x_a,y_a)
             kpt_b_id = BODY_PARTS_KPT_IDS[part_id][1]
             global_kpt_b_id = self.keypoints[kpt_b_id, 0]
             if global_kpt_b_id != -1:
                 x_b, y_b = self.keypoints[kpt_b_id]
                 cv2.circle(img, (int(x_b), int(y_b)), 3, Pose.color, -1)
-                #print("Stt %d - Point b:(%d,%d)",stt,x_b,y_b)
             if global_kpt_a_id != -1 and global_kpt_b_id != -1:
                 cv2.line(img, (int(x_a), int(y_a)), (int(x_b), int(y_b)), Pose.color, 2)
-            stt = stt + 1
+            print("Pair [%d %d] --- Point a:(%d,%d) + Point b:(%d,%d)",
+                BODY_PARTS_KPT_IDS[part_id][0], BODY_PARTS_KPT_IDS[part_id][1], x_a, y_a, x_b, y_b)
 
 
 def get_similarity(a, b, threshold=0.5):
