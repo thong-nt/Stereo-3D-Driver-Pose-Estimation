@@ -65,10 +65,11 @@ def run_demo(net, image_provider, height_size, cpu, track, smooth):
     upsample_ratio = 4
     num_keypoints = Pose.num_kpts
     previous_poses = []
-    delay = 33
+    delay = 1
 
     while True:
         for img in image_provider:
+            img = cv2.resize(img, (360, 270))
             orig_img = img.copy()
             heatmaps, pafs, scale, pad = infer_fast(net, img, height_size, stride, upsample_ratio, cpu)
 
@@ -106,15 +107,15 @@ def run_demo(net, image_provider, height_size, cpu, track, smooth):
             #        cv2.putText(img, 'id: {}'.format(pose.id), (pose.bbox[0], pose.bbox[1] - 16),
             #                   cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255))
             cv2.imshow('Lightweight Human Pose Estimation Python Demo', img)
-            
+
             key = cv2.waitKey(1)
             if key == ord('q'):
                 return
             elif key == 112:  # 'p'
-                if delay == 33:
+                if delay == 1:
                     delay = 0
                 else:
-                    delay = 33
+                    delay = 1
 
 
 if __name__ == '__main__':
@@ -139,9 +140,5 @@ if __name__ == '__main__':
     load_state(net, checkpoint)
 
     frame_provider = ImageReader(args.images)
-    if args.video != '':
-        frame_provider = VideoReader(args.video)
-    else:
-        args.track = 0
 
     run_demo(net, frame_provider, args.height_size, args.cpu, args.track, args.smooth)
