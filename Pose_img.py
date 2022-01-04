@@ -69,7 +69,7 @@ def run_demo(net, image_provider, height_size, cpu, track, smooth):
 
     while True:
         for img in image_provider:
-            img = cv2.resize(img, (360, 270))
+            #img = cv2.resize(img, (360, 270))
             orig_img = img.copy()
             heatmaps, pafs, scale, pad = infer_fast(net, img, height_size, stride, upsample_ratio, cpu)
 
