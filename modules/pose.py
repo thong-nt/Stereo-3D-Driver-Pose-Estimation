@@ -60,7 +60,7 @@ class Pose:
                 cv2.circle(img, (int(x_b), int(y_b)), 3, Pose.color, -1)
             if global_kpt_a_id != -1 and global_kpt_b_id != -1:
                 cv2.line(img, (int(x_a), int(y_a)), (int(x_b), int(y_b)), Pose.color, 2)
-            print("Pair [%d %d] --- Point a:(%d %d) + Point b:(%d %d)",
+            print("Pair (%d %d) --- Point a:(%d %d) + Point b:(%d %d)",
                 kpt_a_id, kpt_b_id, x_a, y_a, x_b, y_b)
 
 
