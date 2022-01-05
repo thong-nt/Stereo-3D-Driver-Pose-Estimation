@@ -110,11 +110,9 @@ if __name__ == '__main__':
         if id == 22424:
             print("Done")
             Save_ds(df,'/media/nvidia/USB/driver_imgs_list_updae.csv')
-"""
         key = cv2.waitKey(0)
         if key == ord('n'):
             id = id + 1
             print(df)
         if key == ord('q'):
             break
-"""
