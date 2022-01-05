@@ -10,6 +10,7 @@ from modules.load_state import load_state
 from modules.pose import Pose, track_poses
 from val import normalize, pad_width
 
+from posedataset import *
 
 class ImageReader(object):
     def __init__(self, file_names):
@@ -108,12 +109,8 @@ def run_demo(net, image_provider, height_size, cpu, track, smooth):
         #                   cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255))
         #cv2.imshow('Lightweight Human Pose Estimation Python Demo', img)
 
-        while True:
-            key = cv2.waitKey(0)
-            if key == ord('q'):
-                return
-
 if __name__ == '__main__':
+    """
     parser = argparse.ArgumentParser(
         description='''Lightweight human pose estimation python demo.
                        This is just for quick results preview.
@@ -129,11 +126,24 @@ if __name__ == '__main__':
 
     if args.video == '' and args.images == '':
         raise ValueError('Either --video or --image has to be provided')
-
+    """
     net = PoseEstimationWithMobileNet()
     checkpoint = torch.load(args.checkpoint_path, map_location='cpu')
     load_state(net, checkpoint)
 
-    frame_provider = ImageReader(args.images)
+    csv_path = 'driver_imgs_list.csv'
+    path_to_ds = "C:\\Users\\DELL\\Desktop\\Tampere\\Thesis\\state-farm-distracted-driver-detection\\imgs\\train\\"
 
-    run_demo(net, frame_provider, args.height_size, args.cpu, args.track, args.smooth)
+    Access_data(path)
+    id = 0
+
+    while True:
+        frame_provider = ImageReader(Get_img(df, id))
+        run_demo(net, frame_provider, args.height_size, args.cpu, args.track, args.smooth)
+        cv2.imshow("piv",img)
+        key = cv2.waitKey(0)
+        if key == ord('n'):
+            id = id + 1
+        if key == ord('q'):
+            break
+
