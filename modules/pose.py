@@ -73,12 +73,12 @@ class Pose:
             if global_kpt_a_id != -1:
                 x_a, y_a = self.keypoints[kpt_a_id]
                 df.at[idx,Pose.kpt_names[part_id]+"_x"] = x_a
-                df.at[idx,Pose.kpt_names[part_id]+"_y"] = x_b
+                df.at[idx,Pose.kpt_names[part_id]+"_y"] = y_a
             kpt_b_id = BODY_PARTS_KPT_IDS[part_id][1]
             global_kpt_b_id = self.keypoints[kpt_b_id, 0]
             if global_kpt_b_id != -1:
                 x_b, y_b = self.keypoints[kpt_b_id]
-                df.at[idx,Pose.kpt_names[part_id]+"_x"] = y_a
+                df.at[idx,Pose.kpt_names[part_id]+"_x"] = x_b
                 df.at[idx,Pose.kpt_names[part_id]+"_y"] = y_b
 
 

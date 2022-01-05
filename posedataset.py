@@ -3,13 +3,12 @@ import cv2
 
 def Access_data(path):
     df = pd.read_csv(path,header = 0)
-    print(df)
     return df
 
-def Get_img(df,indx):
-    img_dir = path_to_ds+df['classname'][indx]+"\\"+df['img'][indx]
+def Get_img(path_to_ds,df,indx):
+    img_dir = path_to_ds+df['classname'][indx]+"/"+df['img'][indx]
     #img = cv2.imread(img_dir,cv2.IMREAD_COLOR)
-    return img
+    return img_dir
 
 
 def Write_data(df,p_header,indx,value):
@@ -17,8 +16,8 @@ def Write_data(df,p_header,indx,value):
     print(df)
     
 
-def Save_ds(df):
-    df.to_csv('driver_poses.csv', index=False)
+def Save_ds(df,path):
+    df.to_csv(path, index=False)
 
 
 #if __name__ == '__main__':
