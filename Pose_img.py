@@ -57,7 +57,7 @@ def infer_fast(net, img, net_input_height_size, stride, upsample_ratio, cpu,
     return heatmaps, pafs, scale, pad
 
 
-def run_demo(net, image_provider, height_size, cpu, track, smooth):
+def run_demo(net, image_provider, height_size, cpu, track, smooth, df, id):
     net = net.eval()
     if not cpu:
         net = net.cuda()
@@ -98,8 +98,8 @@ def run_demo(net, image_provider, height_size, cpu, track, smooth):
             track_poses(previous_poses, current_poses, smooth=smooth)
             previous_poses = current_poses
         for pose in current_poses:
-            pose.draw(img)
-        img = cv2.addWeighted(orig_img, 0.6, img, 0.4, 0)
+            pose.get_pose_info(img, df, id)
+        #img = cv2.addWeighted(orig_img, 0.6, img, 0.4, 0)
 
         #for pose in current_poses:
         #    cv2.rectangle(img, (pose.bbox[0], pose.bbox[1]),
@@ -134,16 +134,17 @@ if __name__ == '__main__':
     csv_path = 'driver_imgs_list.csv'
     path_to_ds = "C:\\Users\\DELL\\Desktop\\Tampere\\Thesis\\state-farm-distracted-driver-detection\\imgs\\train\\"
 
-    Access_data(path)
+    df = Access_data(path)
     id = 0
 
     while True:
         frame_provider = ImageReader(Get_img(df, id))
-        run_demo(net, frame_provider, args.height_size, args.cpu, args.track, args.smooth)
+        run_demo(net, frame_provider, args.height_size, args.cpu, args.track, args.smooth,df,id)
         cv2.imshow("piv",img)
         key = cv2.waitKey(0)
         if key == ord('n'):
             id = id + 1
+            print(df)
         if key == ord('q'):
             break
 
