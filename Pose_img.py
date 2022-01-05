@@ -80,16 +80,17 @@ def run_demo(net, img_dir, height_size, cpu, track, smooth, df, id):
         track_poses(previous_poses, current_poses, smooth=smooth)
         previous_poses = current_poses
     for pose in current_poses:
-        pose.get_pose_info(img, df, id)
-        #img = cv2.addWeighted(orig_img, 0.6, img, 0.4, 0)
+        pose.draw(img)
+        #pose.get_pose_info(img, df, id)
+    img = cv2.addWeighted(orig_img, 0.6, img, 0.4, 0)
 
-        #for pose in current_poses:
-        #    cv2.rectangle(img, (pose.bbox[0], pose.bbox[1]),
-        #                  (pose.bbox[0] + pose.bbox[2], pose.bbox[1] + pose.bbox[3]), (0, 255, 0))
-        #    if track:
-        #        cv2.putText(img, 'id: {}'.format(pose.id), (pose.bbox[0], pose.bbox[1] - 16),
-        #                   cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255))
-        #cv2.imshow('Lightweight Human Pose Estimation Python Demo', img)
+    #for pose in current_poses:
+    #    cv2.rectangle(img, (pose.bbox[0], pose.bbox[1]),
+    #                  (pose.bbox[0] + pose.bbox[2], pose.bbox[1] + pose.bbox[3]), (0, 255, 0))
+    #    if track:
+    #        cv2.putText(img, 'id: {}'.format(pose.id), (pose.bbox[0], pose.bbox[1] - 16),
+    #                   cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255))
+    cv2.imshow('Lightweight Human Pose Estimation Python Demo', img)
 
 if __name__ == '__main__':
     net = PoseEstimationWithMobileNet()
@@ -104,7 +105,7 @@ if __name__ == '__main__':
 
     while True: 
         frame_provider = Get_img(path_to_ds,df,id)
-        run_demo(net, frame_provider, 256, False, 1, 1,df,id)
+        run_demo(net, frame_provider, 256, False, 1, 10,df,id)
         id = id + 1
         print(id)
         if id == 22424:
