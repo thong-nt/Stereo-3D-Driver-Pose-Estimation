@@ -96,7 +96,7 @@ if __name__ == '__main__':
     net = PoseEstimationWithMobileNet()
     checkpoint = torch.load("models/checkpoint_iter_370000.pth", map_location='cpu')
     load_state(net, checkpoint)
-
+it
     csv_path = '/media/nvidia/USB/driver_imgs_list.csv'
     path_to_ds = "/media/nvidia/USB/train/"
 
@@ -104,7 +104,7 @@ if __name__ == '__main__':
     id = 0
 
     while True: 
-        frame_provider = Get_img(path_to_ds,df,id)
+        frame_provider = '/media/nvidia/USB/HeadPoseImageDatabase/Person11/person11147+0+15.jpg'#Get_img(path_to_ds,df,id)
         run_demo(net, frame_provider, 256, False, 1, 10,df,id)
         id = id + 1
         print(id)
