@@ -80,9 +80,9 @@ def run_demo(net, img_dir, height_size, cpu, track, smooth, df, id):
         track_poses(previous_poses, current_poses, smooth=smooth)
         previous_poses = current_poses
     for pose in current_poses:
-        pose.draw(img)
-        #pose.get_pose_info(img, df, id)
-    img = cv2.addWeighted(orig_img, 0.6, img, 0.4, 0)
+        #pose.draw(img)
+        pose.get_pose_info(img, df, id)
+    #img = cv2.addWeighted(orig_img, 0.6, img, 0.4, 0)
 
     #for pose in current_poses:
     #    cv2.rectangle(img, (pose.bbox[0], pose.bbox[1]),
@@ -90,30 +90,34 @@ def run_demo(net, img_dir, height_size, cpu, track, smooth, df, id):
     #    if track:
     #        cv2.putText(img, 'id: {}'.format(pose.id), (pose.bbox[0], pose.bbox[1] - 16),
     #                   cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255))
-    cv2.imshow('Lightweight Human Pose Estimation Python Demo', img)
+    #cv2.imshow('Lightweight Human Pose Estimation Python Demo', img)
 
 if __name__ == '__main__':
     net = PoseEstimationWithMobileNet()
     checkpoint = torch.load("models/checkpoint_iter_370000.pth", map_location='cpu')
     load_state(net, checkpoint)
-it
-    csv_path = '/media/nvidia/USB/driver_imgs_list.csv'
-    path_to_ds = "/media/nvidia/USB/train/"
+
+    csv_path = '/media/nvidia/USB/Headpose_test.csv'
+    path_to_ds = "/media/nvidia/USB/HeadPoseDataset/test/"
 
     df = Access_data(csv_path)
+    print(df)
     id = 0
 
     while True: 
-        frame_provider = '/media/nvidia/USB/HeadPoseImageDatabase/Person11/person11147+0+15.jpg'#Get_img(path_to_ds,df,id)
+        frame_provider = Get_img(path_to_ds,df,id)
         run_demo(net, frame_provider, 256, False, 1, 10,df,id)
         id = id + 1
         print(id)
-        if id == 22424:
+        if id == 731:
             print("Done")
-            Save_ds(df,'/media/nvidia/USB/driver_imgs_list_updae.csv')
+            Save_ds(df,'/media/nvidia/USB/Headpose_test_update.csv')
+            break
+        """
         key = cv2.waitKey(0)
         if key == ord('n'):
             id = id + 1
             print(df)
         if key == ord('q'):
             break
+	"""
