@@ -1,6 +1,9 @@
 
 import cv2
 import numpy as np
+import pandas as pd
+
+
 import torch
 import copy
 import time
@@ -165,6 +168,26 @@ def draw_pose(current_poses, img):
         #cv2.putText(img, 'id: {}'.format(pose.id), (pose.bbox[0], pose.bbox[1] - 16),
         #             cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255))
 
+    return img
+
+def get_package(current_poses):
+    features = {"nose_x",	"nose_y",	"neck_x",	"neck_y",	"r_sho_x",	"r_sho_y", "l_sho_x",	"l_sho_y",	"r_eye_x",	"r_eye_y",	"l_eye_x",	"l_eye_y",	"r_ear_x",	"r_ear_y",	"l_ear_x",	"l_ear_y"}
+    df = pd.DataFrame(features)
+    idx = 0
+    for pose in current_poses:
+        pose.get_pose_info(df,idx)
+        idx = idx + 1
+    pack = np.array(df)
+    return pack
+
+def get_pos(current_poses, predict_res, img):
+    orig_img = img
+    id = 0
+    state = {"Safe","Left","Right","Up","Down"}
+    for pose in current_poses:
+        cv2.putText(img, 'Pos: {}'.format(state[predict_res[id]]), (20, 20),
+                     cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255))
+        id = id + 1
     return img
 
 def extract_pose(heatmaps, pafs, scale, pad, num_keypoints, stride, upsample_ratio):

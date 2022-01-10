@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-
+import pandas as pd
 from modules.keypoints import BODY_PARTS_KPT_IDS, BODY_PARTS_PAF_IDS
 from modules.one_euro_filter import OneEuroFilter
 
@@ -64,7 +64,7 @@ class Pose:
                 cv2.line(img, (int(x_a), int(y_a)), (int(x_b), int(y_b)), Pose.color, 2)
             #print("Pair (", kpt_a_id, kpt_b_id, ") --- Point a:(",x_a, y_a, ") + Point b:(",x_b, y_b,")")
     
-    def get_pose_info(self, img, df, idx):
+    def get_pose_info(self, img, df, idx): #use to get data to csv file
         assert self.keypoints.shape == (Pose.num_kpts, 2)
 
         for part_id in range(len(BODY_PARTS_PAF_IDS) - 2):
@@ -81,6 +81,23 @@ class Pose:
                 df.at[idx,Pose.kpt_names[kpt_b_id]+"_x"] = x_b
                 df.at[idx,Pose.kpt_names[kpt_b_id]+"_y"] = y_b
 
+    def extract_features(self,df,idx):
+        # Create feature package.  
+        assert self.keypoints.shape == (Pose.num_kpts, 2)
+
+        for part_id in range(len(BODY_PARTS_PAF_IDS) - 2):
+            kpt_a_id = BODY_PARTS_KPT_IDS[part_id][0]
+            global_kpt_a_id = self.keypoints[kpt_a_id, 0]
+            if global_kpt_a_id != -1:
+                x_a, y_a = self.keypoints[kpt_a_id]
+                df.at[idx,Pose.kpt_names[kpt_a_id]+"_x"] = x_a
+                df.at[idx,Pose.kpt_names[kpt_a_id]+"_y"] = y_a
+            kpt_b_id = BODY_PARTS_KPT_IDS[part_id][1]
+            global_kpt_b_id = self.keypoints[kpt_b_id, 0]
+            if global_kpt_b_id != -1:
+                x_b, y_b = self.keypoints[kpt_b_id]
+                df.at[idx,Pose.kpt_names[kpt_b_id]+"_x"] = x_b
+                df.at[idx,Pose.kpt_names[kpt_b_id]+"_y"] = y_b
 
 def get_similarity(a, b, threshold=0.5):
     num_similar_kpt = 0

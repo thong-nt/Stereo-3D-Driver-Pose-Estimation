@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import tensorflow as tf
 import torch
 
 from models.with_mobilenet import PoseEstimationWithMobileNet
@@ -15,7 +16,7 @@ from poseinferscheduler import PoseInferScheduler
 import time
 
 
-def run_3dpose(net):
+def run_3dpose(net,model):
     cpu = False
     downscale_resolution = True
 
@@ -161,9 +162,18 @@ def run_3dpose(net):
         if len(r_previous_poses) == 0 or len(l_previous_poses) == 0:
             continue
 
-        Rimg = draw_pose(r_current_poses, Rimg_synced)
-        Limg = draw_pose(l_current_poses, Limg_synced)
-        
+        #Rimg = draw_pose(r_current_poses, Rimg_synced)
+        #Limg = draw_pose(l_current_poses, Limg_synced)
+        r_pack = get_package(r_current_poses)
+        l_pack = get_package(l_current_poses)
+
+        r_predict_res = tf.argmax(model(r_pack), axis=1)
+        l_predict_res = tf.argmax(model(l_pack), axis=1)
+
+        Rimg = get_pos(r_current_poses, r_predict_res,Rimg_synced)
+        Limg = get_pos(l_current_poses, l_predict_res,Limg_synced)
+
+
         cv2.imshow('img', np.hstack([Rimg, Limg]))
         key = cv2.waitKey(1)
         if key == ord('q'):
@@ -178,5 +188,5 @@ if __name__ == '__main__':
     net = PoseEstimationWithMobileNet()
     checkpoint = torch.load("models/checkpoint_iter_370000.pth", map_location='cpu')
     load_state(net, checkpoint)
-
-    run_3dpose(net)
+    model = tf.keras.models.load_model('models/Headpose/')
+    run_3dpose(net,model)
