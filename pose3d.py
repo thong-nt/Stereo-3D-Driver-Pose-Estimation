@@ -189,5 +189,5 @@ if __name__ == '__main__':
     net = PoseEstimationWithMobileNet()
     checkpoint = torch.load("models/checkpoint_iter_370000.pth", map_location='cpu')
     load_state(net, checkpoint)
-    model = torch.load('models/Headpose/')
+    model = torch.load("models/head_pose_checkpoint.pth",map_location='cpu')
     run_3dpose(net,model)
