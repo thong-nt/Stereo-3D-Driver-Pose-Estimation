@@ -43,13 +43,12 @@ def get_package(current_poses):
     df = pd.DataFrame(columns=features)
     idx = 0
     for pose in current_poses:
-        df=df.fillna(0)
         pose.get_pose_info(None,df,idx)
         idx = idx + 1
-    
-    pack = np.array(df)
+    df=df.fillna(0)
+    print(df)
     scaler = StandardScaler()
-    pack = scaler.fit_transform(pack)
+    pack = scaler.fit_transform(df)
     input_pack = Input_pack(torch.FloatTensor(pack))
     input_loader = DataLoader(dataset=input_pack, batch_size=1,shuffle=False)
     
@@ -59,11 +58,11 @@ def get_package(current_poses):
 
 def get_pos(current_poses, predict_res, img):
     orig_img = img
-    id = 0
+
     _, predicted = torch.max(predict_res, 1)
-    state = ["Safe","Left","Right","Up","Down"]
-    for pose in current_poses:
-        cv2.putText(img, 'Pos: {}'.format(state[predicted[id]]), (20, 20),
-                     cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255))
-        id = id + 1
+    state = ["Safe","Right","Left","Down","Up"]
+    #print(predicted)
+    if predicted.shape[0] > 0:
+       cv2.putText(img, 'Pos: {}'.format(state[predicted[0]]), (20, 20),
+                cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255))
     return img
