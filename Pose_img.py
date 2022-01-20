@@ -97,8 +97,8 @@ if __name__ == '__main__':
     checkpoint = torch.load("models/checkpoint_iter_370000.pth", map_location='cpu')
     load_state(net, checkpoint)
 
-    csv_path = '/media/nvidia/USB/Headpose_test.csv'
-    path_to_ds = "/media/nvidia/USB/HeadPoseDataset/test/"
+    csv_path = '/media/nvidia/USB/Headpose_train.csv'
+    path_to_ds = "/media/nvidia/USB/HeadPoseSet/train/"
 
     df = Access_data(csv_path)
     print(df)
@@ -109,9 +109,9 @@ if __name__ == '__main__':
         run_demo(net, frame_provider, 256, False, 1, 10,df,id)
         id = id + 1
         print(id)
-        if id == 731:
+        if id == 2375:
             print("Done")
-            Save_ds(df,'/media/nvidia/USB/Headpose_test_update.csv')
+            Save_ds(df,'/media/nvidia/USB/Headpose_train_update.csv')
             break
         """
         key = cv2.waitKey(0)

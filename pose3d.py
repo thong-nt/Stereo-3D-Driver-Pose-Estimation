@@ -168,8 +168,8 @@ def run_3dpose(net,model):
         r_pack = get_package(r_current_poses)
         l_pack = get_package(l_current_poses)
 
-        r_predict_res = model(r_pack)
-        l_predict_res = model(l_pack)
+        r_predict_res = get_res(model,r_pack)
+        l_predict_res = get_res(model,l_pack)
 
         Rimg = get_pos(r_current_poses, r_predict_res,Rimg_synced)
         Limg = get_pos(l_current_poses, l_predict_res,Limg_synced)
@@ -190,4 +190,5 @@ if __name__ == '__main__':
     checkpoint = torch.load("models/checkpoint_iter_370000.pth", map_location='cpu')
     load_state(net, checkpoint)
     model = torch.load("models/head_pose_checkpoint.pth",map_location='cpu')
+    model.eval()
     run_3dpose(net,model)

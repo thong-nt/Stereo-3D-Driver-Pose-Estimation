@@ -3,6 +3,7 @@ import cv2
 
 def Access_data(path):
     df = pd.read_csv(path,header = 0)
+    df['classname'] = df['classname'].apply(str)
     return df
 
 def Get_img(path_to_ds,df,indx):
