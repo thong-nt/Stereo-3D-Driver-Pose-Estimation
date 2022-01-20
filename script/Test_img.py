@@ -17,7 +17,12 @@ from val import normalize, pad_width
 
 state = ["Safe","Distracted"]
 features = ["nose_x", "nose_y", "neck_x", "neck_y",	"r_sho_x", "r_sho_y", "l_sho_x", "l_sho_y",	"r_eye_x",	"r_eye_y",	"l_eye_x",	"l_eye_y",	"r_ear_x",	"r_ear_y",	"l_ear_x",	"l_ear_y"]
-  
+
+y = 160
+h = 230
+x = 190
+w = 330
+
 class NeuralNetwork(nn.Module):
     def __init__(self, input_size, hidden_sze, num_classes):
         super(NeuralNetwork, self).__init__()
@@ -87,6 +92,7 @@ def run_demo(net, img_dir, height_size, cpu, track, smooth, df, id, model):
     delay = 1
 
     img = cv2.imread(img_dir,cv2.IMREAD_COLOR)
+    img = img[y:y+h, x:x+w]
     img = cv2.resize(img, (360, 270))
     orig_img = img.copy()
     heatmaps, pafs, scale, pad = infer_fast(net, img, height_size, stride, upsample_ratio, cpu)
