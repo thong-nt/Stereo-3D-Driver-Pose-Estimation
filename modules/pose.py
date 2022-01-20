@@ -72,14 +72,14 @@ class Pose:
             global_kpt_a_id = self.keypoints[kpt_a_id, 0]
             if global_kpt_a_id != -1:
                 x_a, y_a = self.keypoints[kpt_a_id]
-                df.at[idx,Pose.kpt_names[kpt_a_id]+"_x"] = x_a/360
-                df.at[idx,Pose.kpt_names[kpt_a_id]+"_y"] = y_a/270
+                df.at[idx,Pose.kpt_names[kpt_a_id]+"_x"] = x_a#/360
+                df.at[idx,Pose.kpt_names[kpt_a_id]+"_y"] = y_a#/270
             kpt_b_id = BODY_PARTS_KPT_IDS[part_id][1]
             global_kpt_b_id = self.keypoints[kpt_b_id, 0]
             if global_kpt_b_id != -1:
                 x_b, y_b = self.keypoints[kpt_b_id]
-                df.at[idx,Pose.kpt_names[kpt_b_id]+"_x"] = x_b/360
-                df.at[idx,Pose.kpt_names[kpt_b_id]+"_y"] = y_b/270
+                df.at[idx,Pose.kpt_names[kpt_b_id]+"_x"] = x_b#/360
+                df.at[idx,Pose.kpt_names[kpt_b_id]+"_y"] = y_b#/270
 
 def get_similarity(a, b, threshold=0.5):
     num_similar_kpt = 0
