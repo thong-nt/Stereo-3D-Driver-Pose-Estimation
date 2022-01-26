@@ -82,8 +82,7 @@ def infer_fast(net, img, net_input_height_size, stride, upsample_ratio, cpu,
 
 def run_demo(net, image_provider, height_size, cpu, track, smooth, model):
     net = net.eval()
-    if not cpu:
-        net = net.cuda()
+    net = net.cuda()
 
     stride = 8
     upsample_ratio = 4
@@ -94,8 +93,8 @@ def run_demo(net, image_provider, height_size, cpu, track, smooth, model):
     features = ["nose_x", "nose_y", "neck_x", "neck_y",	"r_sho_x", "r_sho_y", "l_sho_x", "l_sho_y",	"r_eye_x",	"r_eye_y",	"l_eye_x",	"l_eye_y",	"r_ear_x",	"r_ear_y",	"l_ear_x",	"l_ear_y"]
     df = pd.DataFrame(columns=features)
     idx = 0
-
-    for img in image_provider:
+    with torch.no_grad():
+      for img in image_provider:
         img = cv2.resize(img, (360, 270))
         orig_img = img.copy()
         heatmaps, pafs, scale, pad = infer_fast(net, img, height_size, stride, upsample_ratio, cpu)
@@ -125,39 +124,23 @@ def run_demo(net, image_provider, height_size, cpu, track, smooth, model):
             track_poses(previous_poses, current_poses, smooth=smooth)
             previous_poses = current_poses
         for pose in current_poses:
-            pose.get_pose_info(None,df,idx)
+            pose.get_pose_info(img,df,idx)
             idx = idx + 1
-            pose.draw(img)
-        img = cv2.addWeighted(orig_img, 0.6, img, 0.4, 0)
 
-    df=df.fillna(0)
+        df=df.fillna(0)
 
-    scaler = StandardScaler()
-    pack = scaler.fit_transform(df)
-    input_pack = Input_pack(torch.FloatTensor(pack))
-    input_loader = DataLoader(dataset=input_pack, batch_size=1,shuffle=False)
+        scaler = StandardScaler()
+        pack = scaler.fit_transform(df)
+        f = np.array(pack[len(pack)-1])
+        input_pack = Input_pack(torch.FloatTensor(np.reshape(f,(1,16))))
+        input_loader = DataLoader(dataset=input_pack, batch_size=1,shuffle=False)
 
-    res = pd.DataFrame(columns=['res'])
-    with torch.no_grad():
-           a = 0
-           for feature in input_loader:
-             predict = model(feature)
-             #print(predict)
-             _, predicted = torch.max(predict, 1)
-             res.at[a,'res'] = predicted[0]
-             a = a + 1
-             #print(predicted)
-
-    b = 0
-    for img in image_provider:
-       cv2.putText(img, 'Pos: {}'.format(state[res.iloc[b]['res']]), (20, 20), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255))
-       cv2.imshow('Lightweight Human Pose Estimation Python Demo', img)
-       b = b + 1
-       key = cv2.waitKey(0)
-       if key == ord('n'):
-          continue
-       if key == ord('q'):
-          break
+        for feature in input_loader:
+            predict = model(feature)
+            _, predicted = torch.max(predict, 1)
+            cv2.putText(img, 'Pos: {}'.format(state[predicted[0]]), (20, 20), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255))
+            cv2.imshow('Lightweight Human Pose Estimation Python Demo', img)
+            key = cv2.waitKey(4)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(

@@ -51,7 +51,7 @@ def run_demo(net, img_dir, height_size, cpu, track, smooth, df, id):
     delay = 1
 
     img = cv2.imread(img_dir,cv2.IMREAD_COLOR)
-    img = cv2.resize(img, (360, 270))
+    img = cv2.resize(img, (128, 128))
     orig_img = img.copy()
     heatmaps, pafs, scale, pad = infer_fast(net, img, height_size, stride, upsample_ratio, cpu)
 
@@ -97,8 +97,8 @@ if __name__ == '__main__':
     checkpoint = torch.load("models/checkpoint_iter_370000.pth", map_location='cpu')
     load_state(net, checkpoint)
 
-    csv_path = '/media/nvidia/USB/testset.csv'
-    path_to_ds = "/media/nvidia/USB/res/"
+    csv_path = '/media/nvidia/USB/test.csv'
+    path_to_ds = "/media/nvidia/USB/HeadPoseSet/train/"
 
     df = Access_data(csv_path)
     print(df)
@@ -109,9 +109,9 @@ if __name__ == '__main__':
         run_demo(net, frame_provider, 256, False, 1, 10,df,id)
         id = id + 1
         print(id)
-        if id == 491:
+        if id == 4261:
             print("Done")
-            Save_ds(df,'/media/nvidia/USB/testset_update.csv')
+            Save_ds(df,'/media/nvidia/USB/testnew_update.csv')
             break
         """
         key = cv2.waitKey(0)

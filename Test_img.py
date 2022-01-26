@@ -2,57 +2,56 @@ import argparse
 
 import cv2
 import numpy as np
-import pandas as pd
 import torch
-from torch import nn
-
-from sklearn.preprocessing import StandardScaler
-from torch.utils.data import Dataset, DataLoader 
-from modules.pose import Pose
 
 from models.with_mobilenet import PoseEstimationWithMobileNet
 from modules.keypoints import extract_keypoints, group_keypoints
 from modules.load_state import load_state
 from modules.pose import Pose, track_poses
 from val import normalize, pad_width
+from driver_status import *
 
 state = ["Safe","Distracted"]
-features = ["nose_x", "nose_y", "neck_x", "neck_y",	"r_sho_x", "r_sho_y", "l_sho_x", "l_sho_y",	"r_eye_x",	"r_eye_y",	"l_eye_x",	"l_eye_y",	"r_ear_x",	"r_ear_y",	"l_ear_x",	"l_ear_y"]
 
-y = 160
-h = 230
-x = 190
-w = 330
+class ImageReader(object):
+    def __init__(self, file_names):
+        self.file_names = file_names
+        self.max_idx = len(file_names)
 
-class NeuralNetwork(nn.Module):
-    def __init__(self, input_size, hidden_sze, num_classes):
-        super(NeuralNetwork, self).__init__()
-        self.l1 =  nn.Linear(input_size,64)
-        #self.l2 =  nn.Linear(64,32)
-        self.l3 =  nn.Linear(64,32)
-        self.lout =  nn.Linear(32,2)
+    def __iter__(self):
+        self.idx = 0
+        return self
 
-        self.elu = nn.ELU()
-        self.relu = nn.ReLU()
-        self.dropout = nn.Dropout(p=0.1)
+    def __next__(self):
+        if self.idx == self.max_idx:
+            raise StopIteration
+        img = cv2.imread(self.file_names[self.idx], cv2.IMREAD_COLOR)
+        if img.size == 0:
+            raise IOError('Image {} cannot be read'.format(self.file_names[self.idx]))
+        self.idx = self.idx + 1
+        return img
 
-    def forward(self, x):
-        out = self.relu(self.l1(x))
-        #out = self.elu(self.l2(out))
-        out = self.elu(self.l3(out))
-        out = self.dropout(out)
-        out = self.lout(out)
-        return out
 
-class Input_pack(Dataset):
-    
-    def __init__(self, X_data):
-        self.X_data = X_data
-        
-    def __getitem__(self, index):
-        return self.X_data[index]
-    def __len__ (self):
-        return len(self.X_data)
+class VideoReader(object):
+    def __init__(self, file_name):
+        self.file_name = file_name
+        try:  # OpenCV needs int to read from webcam
+            self.file_name = int(file_name)
+        except ValueError:
+            pass
+
+    def __iter__(self):
+        self.cap = cv2.VideoCapture(self.file_name)
+        if not self.cap.isOpened():
+            raise IOError('Video {} cannot be opened'.format(self.file_name))
+        return self
+
+    def __next__(self):
+        was_read, img = self.cap.read()
+        if not was_read:
+            raise StopIteration
+        return img
+
 
 def infer_fast(net, img, net_input_height_size, stride, upsample_ratio, cpu,
                pad_value=(0, 0, 0), img_mean=np.array([128, 128, 128], np.float32), img_scale=np.float32(1/256)):
@@ -81,7 +80,7 @@ def infer_fast(net, img, net_input_height_size, stride, upsample_ratio, cpu,
     return heatmaps, pafs, scale, pad
 
 
-def run_demo(net, img_dir, height_size, cpu, track, smooth, df, id, model):
+def run_demo(net, image_provider, height_size, cpu, track, smooth, model):
     net = net.eval()
     if not cpu:
         net = net.cuda()
@@ -92,94 +91,100 @@ def run_demo(net, img_dir, height_size, cpu, track, smooth, df, id, model):
     previous_poses = []
     delay = 1
 
-    img = cv2.imread(img_dir,cv2.IMREAD_COLOR)
-    img = img[y:y+h, x:x+w]
-    img = cv2.resize(img, (360, 270))
-    orig_img = img.copy()
-    heatmaps, pafs, scale, pad = infer_fast(net, img, height_size, stride, upsample_ratio, cpu)
-
-    total_keypoints_num = 0
-    all_keypoints_by_type = []
-    for kpt_idx in range(num_keypoints):  # 19th for bg
-        total_keypoints_num += extract_keypoints(heatmaps[:, :, kpt_idx], all_keypoints_by_type, total_keypoints_num)
-    
-    pose_entries, all_keypoints = group_keypoints(all_keypoints_by_type, pafs)
-    for kpt_id in range(all_keypoints.shape[0]):
-        all_keypoints[kpt_id, 0] = (all_keypoints[kpt_id, 0] * stride / upsample_ratio - pad[1]) / scale
-        all_keypoints[kpt_id, 1] = (all_keypoints[kpt_id, 1] * stride / upsample_ratio - pad[0]) / scale
-    current_poses = []
-    for n in range(len(pose_entries)):
-        if len(pose_entries[n]) == 0:
-            continue
-        pose_keypoints = np.ones((num_keypoints, 2), dtype=np.int32) * -1
-        for kpt_id in range(num_keypoints):
-            if pose_entries[n][kpt_id] != -1.0:  # keypoint was found
-                pose_keypoints[kpt_id, 0] = int(all_keypoints[int(pose_entries[n][kpt_id]), 0])
-                pose_keypoints[kpt_id, 1] = int(all_keypoints[int(pose_entries[n][kpt_id]), 1])
-        pose = Pose(pose_keypoints, pose_entries[n][18])
-        current_poses.append(pose)
-
-    if track:
-        track_poses(previous_poses, current_poses, smooth=smooth)
-        previous_poses = current_poses
-
+    features = ["nose_x", "nose_y", "neck_x", "neck_y",	"r_sho_x", "r_sho_y", "l_sho_x", "l_sho_y",	"r_eye_x",	"r_eye_y",	"l_eye_x",	"l_eye_y",	"r_ear_x",	"r_ear_y",	"l_ear_x",	"l_ear_y"]
     df = pd.DataFrame(columns=features)
     idx = 0
 
-    for pose in current_poses:
-        pose.get_pose_info(None,df,idx)
-        pose.draw(img)
-        idx = idx + 1
+    for img in image_provider:
+        img = cv2.resize(img, (360, 270))
+        orig_img = img.copy()
+        heatmaps, pafs, scale, pad = infer_fast(net, img, height_size, stride, upsample_ratio, cpu)
+
+        total_keypoints_num = 0
+        all_keypoints_by_type = []
+        for kpt_idx in range(num_keypoints):  # 19th for bg
+            total_keypoints_num += extract_keypoints(heatmaps[:, :, kpt_idx], all_keypoints_by_type, total_keypoints_num)
+
+        pose_entries, all_keypoints = group_keypoints(all_keypoints_by_type, pafs)
+        for kpt_id in range(all_keypoints.shape[0]):
+            all_keypoints[kpt_id, 0] = (all_keypoints[kpt_id, 0] * stride / upsample_ratio - pad[1]) / scale
+            all_keypoints[kpt_id, 1] = (all_keypoints[kpt_id, 1] * stride / upsample_ratio - pad[0]) / scale
+        current_poses = []
+        for n in range(len(pose_entries)):
+            if len(pose_entries[n]) == 0:
+                continue
+            pose_keypoints = np.ones((num_keypoints, 2), dtype=np.int32) * -1
+            for kpt_id in range(num_keypoints):
+                if pose_entries[n][kpt_id] != -1.0:  # keypoint was found
+                    pose_keypoints[kpt_id, 0] = int(all_keypoints[int(pose_entries[n][kpt_id]), 0])
+                    pose_keypoints[kpt_id, 1] = int(all_keypoints[int(pose_entries[n][kpt_id]), 1])
+            pose = Pose(pose_keypoints, pose_entries[n][18])
+            current_poses.append(pose)
+
+        if track:
+            track_poses(previous_poses, current_poses, smooth=smooth)
+            previous_poses = current_poses
+        for pose in current_poses:
+            pose.get_pose_info(None,df,idx)
+            idx = idx + 1
+            pose.draw(img)
+        img = cv2.addWeighted(orig_img, 0.6, img, 0.4, 0)
+
     df=df.fillna(0)
-    print(df)
+
     scaler = StandardScaler()
     pack = scaler.fit_transform(df)
+    input_pack = Input_pack(torch.FloatTensor(pack))
+    input_loader = DataLoader(dataset=input_pack, batch_size=1,shuffle=False)
 
-    outputs = model(torch.FloatTensor(pack))
-    _, predicted = torch.max(outputs, 1)
-    print(outputs)
-    cv2.putText(img, 'Pos: {}'.format(state[predicted]), (20, 20),cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255))
+    res = pd.DataFrame(columns=['res'])
+    with torch.no_grad():
+           a = 0
+           for feature in input_loader:
+             predict = model(feature)
+             #print(predict)
+             _, predicted = torch.max(predict, 1)
+             res.at[a,'res'] = predicted[0]
+             a = a + 1
+             #print(predicted)
 
-    return img
-    #img = cv2.addWeighted(orig_img, 0.6, img, 0.4, 0)
-
-    #for pose in current_poses:
-    #    cv2.rectangle(img, (pose.bbox[0], pose.bbox[1]),
-    #                  (pose.bbox[0] + pose.bbox[2], pose.bbox[1] + pose.bbox[3]), (0, 255, 0))
-    #    if track:
-    #        cv2.putText(img, 'id: {}'.format(pose.id), (pose.bbox[0], pose.bbox[1] - 16),
-    #                   cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255))
-    #cv2.imshow('Lightweight Human Pose Estimation Python Demo', img)
-
-def Get_img(path_to_ds,df,indx):
-    img_dir = path_to_ds+df['img'][indx]
-    #img = cv2.imread(img_dir,cv2.IMREAD_COLOR)
-    return img_dir
+    b = 0
+    for img in image_provider:
+       cv2.putText(img, 'Pos: {}'.format(state[res.iloc[b]['res']]), (20, 20), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255))
+       cv2.imshow('Lightweight Human Pose Estimation Python Demo', img)
+       b = b + 1
+       key = cv2.waitKey(0)
+       if key == ord('n'):
+          continue
+       if key == ord('q'):
+          break
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='''Lightweight human pose estimation python demo.
+                       This is just for quick results preview.
+                       Please, consider c++ demo for the best performance.''')
+    parser.add_argument('--height-size', type=int, default=256, help='network input layer height size')
+    parser.add_argument('--video', type=str, default='', help='path to video file or camera id')
+    parser.add_argument('--images', nargs='+', default='', help='path to input image(s)')
+    parser.add_argument('--cpu', action='store_true', help='run network inference on cpu')
+    parser.add_argument('--track', type=int, default=1, help='track pose id in video')
+    parser.add_argument('--smooth', type=int, default=1, help='smooth pose keypoints')
+    args = parser.parse_args()
+
+    if args.video == '' and args.images == '':
+        raise ValueError('Either --video or --image has to be provided')
+
     net = PoseEstimationWithMobileNet()
     checkpoint = torch.load("models/checkpoint_iter_370000.pth", map_location='cpu')
-    PATH = 'models/head_pose_checkpoint.pth'
-    model = NeuralNetwork(16,64,2)
-    model = torch.load(PATH)
-    model.eval()
     load_state(net, checkpoint)
 
-    csv_path = '/media/nvidia/USB/test.csv'
-    path_to_ds = "/media/nvidia/USB/Test/"
+    #frame_provider = ImageReader(args.images)
+    if args.video != '':
+        frame_provider = VideoReader(args.video)
+    else:
+        args.track = 0
 
-    df = pd.read_csv(csv_path,header = 0)
-    print(df)
-    id = 0
-    with torch.no_grad():
-      while True: 
-          frame_provider = Get_img(path_to_ds,df,id)
-          img = run_demo(net, frame_provider, 256, False, 1, 10,df,id,model)
-          print(id)
-          cv2.imshow('Lightweight Human Pose Estimation Python Demo', img)
-          key = cv2.waitKey(0)
-          if key == ord('n'):
-              id = id + 1
-          if key == ord('q'):
-              print("Quit......")
-              break
+    model = NeuralNetwork(16,64,2)
+    model = torch.load("models/head_pose_checkpoint.pth")
+    run_demo(net, frame_provider, args.height_size, args.cpu, args.track, args.smooth, model)

@@ -9,6 +9,7 @@ from torch.utils.data import Dataset, DataLoader
 from modules.pose import Pose
 
 state = ["Safe","Distracted"]
+scaler = StandardScaler()
 
 class Input_pack(Dataset):
     
@@ -40,27 +41,23 @@ class NeuralNetwork(nn.Module):
         out = self.lout(out)
         return out
 
-def get_res(current_poses, model, img):
-    features = ["nose_x", "nose_y", "neck_x", "neck_y",	"r_sho_x", "r_sho_y", "l_sho_x", "l_sho_y",	"r_eye_x",	"r_eye_y",	"l_eye_x",	"l_eye_y",	"r_ear_x",	"r_ear_y",	"l_ear_x",	"l_ear_y"]
-    df = pd.DataFrame(columns=features)
-    idx = 0
-
+def get_res(df,idx,current_poses, model, img):
     for pose in current_poses:
-        pose.get_pose_info(None,df,idx)
-        idx = idx + 1
+        pose.get_pose_info(img,df,idx)
+   
     df=df.fillna(0)
+    if idx == 0:
+       input_pack = Input_pack(torch.FloatTensor(df.values))
+    else:
+       pack = scaler.fit_transform(df)
+       f = np.array(pack[len(pack)-1])
+       input_pack = Input_pack(torch.FloatTensor(np.reshape(f,(1,16))))
 
-    scaler = StandardScaler()
-    pack = scaler.fit_transform(df)
-    input_pack = Input_pack(torch.FloatTensor(pack))
     input_loader = DataLoader(dataset=input_pack, batch_size=1,shuffle=False)
 
-    with torch.no_grad():
-           for feature in input_loader:
-             predict = model(feature)
-             print(predict)
-             _, predicted = torch.max(predict, 1)
-             print(predicted)
-             cv2.putText(img, 'Pos: {}'.format(state[predicted[0]]), (20, 20), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255))
+    for feature in input_loader:
+        predict = model(feature)
+        _, predicted = torch.max(predict, 1)
+        cv2.putText(img, 'Pos: {}'.format(state[predicted[0]]), (20, 20), cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 255))
     
     return img

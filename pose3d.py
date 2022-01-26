@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-
+import pandas as pd
 import torch
 
 from models.with_mobilenet import PoseEstimationWithMobileNet
@@ -16,6 +16,7 @@ from driver_status import *
 
 import time
 
+features = ["nose_x", "nose_y", "neck_x", "neck_y",	"r_sho_x", "r_sho_y", "l_sho_x", "l_sho_y",	"r_eye_x",	"r_eye_y",	"l_eye_x",	"l_eye_y",	"r_ear_x",	"r_ear_y",	"l_ear_x",	"l_ear_y"]
 
 def run_3dpose(net,model):
     cpu = False
@@ -85,7 +86,10 @@ def run_3dpose(net,model):
 
     previous_pose_transmit_time = time.time()
 
-    while True:
+    df = pd.DataFrame(columns=features)
+    idx = 0
+    with torch.no_grad():
+     while True:
         begintime = time.time()
 
         if not waitforready or (waitforready and canadvance):
@@ -162,12 +166,12 @@ def run_3dpose(net,model):
 
         if len(r_previous_poses) == 0 or len(l_previous_poses) == 0:
             continue
-
-        #Rimg = draw_pose(r_current_poses, Rimg_synced)
-        #Limg = draw_pose(l_current_poses, Limg_synced)
-        Rimg = get_res(r_current_poses, model, Rimg_synced)
-        Limg = get_res(l_current_poses, model, Limg_synced)
-
+        
+        Rimg = draw_pose(r_current_poses, Rimg_synced)
+        Limg = draw_pose(l_current_poses, Limg_synced)
+        Rimg = get_res(df, idx, r_current_poses, model, Rimg)
+        Limg = get_res(df, idx, l_current_poses, model, Limg)
+        idx = idx + 1
         cv2.imshow('img', np.hstack([Rimg, Limg]))
         key = cv2.waitKey(1)
         if key == ord('q'):
@@ -184,4 +188,5 @@ if __name__ == '__main__':
     load_state(net, checkpoint)
     model = NeuralNetwork(16,64,2)
     model = torch.load("models/head_pose_checkpoint.pth")
+    model.eval()
     run_3dpose(net,model)
