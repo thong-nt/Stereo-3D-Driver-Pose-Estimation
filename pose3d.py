@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import pandas as pd
 import torch
 
 from models.with_mobilenet import PoseEstimationWithMobileNet
@@ -9,17 +10,17 @@ from modules.pose import Pose, track_poses
 from val import normalize, pad_width
 
 from pose3dmodules import *
-from posesocket import PoseTransmitter
 from posescheduler import PoseScheduler
 from poseinferscheduler import PoseInferScheduler
+from driver_status import *
 
 import time
 
+features = ["nose_x", "nose_y", "neck_x", "neck_y",	"r_sho_x", "r_sho_y", "l_sho_x", "l_sho_y",	"r_eye_x",	"r_eye_y",	"l_eye_x",	"l_eye_y",	"r_ear_x",	"r_ear_y",	"l_ear_x",	"l_ear_y"]
 
-def run_3dpose(net):
+def run_3dpose(net,model):
     cpu = False
     downscale_resolution = True
-    transmit_over_socket = False
 
     # NOTE: prerecorded videos not included
     useprerecorded = False
@@ -80,16 +81,15 @@ def run_3dpose(net):
     Limg = None
     newpose, r_current_poses, l_current_poses, Rimg_synced, Limg_synced = False, None, None, None, None
 
-    if transmit_over_socket:
-        posetransmitter = PoseTransmitter(host="127.0.0.1", port=1234)
-        posetransmitter.await_connection()
-
     canadvance = True
     newframetime = time.time()
 
     previous_pose_transmit_time = time.time()
 
-    while True:
+    df = pd.DataFrame(columns=features)
+    idx = 0
+    with torch.no_grad():
+     while True:
         begintime = time.time()
 
         if not waitforready or (waitforready and canadvance):
@@ -163,23 +163,22 @@ def run_3dpose(net):
             except:
                 continue
 
-            if transmit_over_socket:
-                posetransmitter.transmit_pose(pose3d)
-
 
         if len(r_previous_poses) == 0 or len(l_previous_poses) == 0:
             continue
-
+        
         Rimg = draw_pose(r_current_poses, Rimg_synced)
         Limg = draw_pose(l_current_poses, Limg_synced)
-        
+        Rimg = get_res(df, idx, r_current_poses, model, Rimg)
+        Limg = get_res(df, idx, l_current_poses, model, Limg)
+        idx = idx + 1
         cv2.imshow('img', np.hstack([Rimg, Limg]))
         key = cv2.waitKey(1)
         if key == ord('q'):
             pose_infer_scheduler.stop_infer()
             return
 
-        # print("fps:", int(1 / (time.time() - begintime)))
+        #print("fps:", int(1 / (time.time() - begintime)))
 
 
 
@@ -187,5 +186,7 @@ if __name__ == '__main__':
     net = PoseEstimationWithMobileNet()
     checkpoint = torch.load("models/checkpoint_iter_370000.pth", map_location='cpu')
     load_state(net, checkpoint)
-
-    run_3dpose(net)
+    model = NeuralNetwork(16,64,2)
+    model = torch.load("models/head_pose_checkpoint.pth")
+    model.eval()
+    run_3dpose(net,model)
